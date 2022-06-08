@@ -2,12 +2,9 @@
 #include <vector>
 
 #define BELA_MASTER 0
-#define VERBOSE
+#define VERBOSE 1
 
 bool gBelaIsMaster = false;
-#if BELA_MASTER == 1
-gBelaIsMaster = true;
-#endif
 
 std::vector<unsigned int> gCommPins{1, 2, 3, 4};
 
@@ -23,6 +20,9 @@ unsigned int gCommBlockSpan = 689; // ~ 0.25 sec @44.1k (16 block size)
 
 /*** SETUP ***/
 bool setup(BelaContext *context, void *userData) {
+#if BELA_MASTER == 1
+	bool gBelaIsMaster = true;
+#endif
 	// If Bela is master...
 	if (gBelaIsMaster) {
 		parallelComm.setup(gCommPins.data(), gCommPins.size(),
