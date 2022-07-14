@@ -22,7 +22,7 @@ unsigned int gCommCount = 0;
 unsigned int gCommBlockSpan = 689; // ~ 0.25 sec @44.1k (16 block size)
 
 // Sensor analog pin
-// unsigned int gSensorPin = 0;
+unsigned int gSensorPin = 0;
 
 /*** SETUP ***/
 bool setup(BelaContext* context, void* userData) {
@@ -47,12 +47,6 @@ bool setup(BelaContext* context, void* userData) {
         parallelComm.printBuffers();
     }
 
-    // // Check if analog channels are enabled --> set AnalogChannels to 4 in the IDE
-    // if (context->analogFrames == 0 || context->analogFrames > context->audioFrames) {
-    //     rt_printf("Error: this example needs analog enabled, with 4 channels\n");
-    //     return false;
-    // }
-
     return true;
 }
 
@@ -63,7 +57,7 @@ void render(BelaContext* context, void* userData) {
     for (unsigned int n = 0; n < context->audioFrames; n++) {
 
         // Read sensor value
-        // float sensorValue = analogRead(context, n, gSensorPin);
+        float sensorValue = analogRead(context, n, gSensorPin);
 
         // If Bela is master..
         if (gBelaIsMaster) {
@@ -74,8 +68,8 @@ void render(BelaContext* context, void* userData) {
 #ifdef VERBOSE
 
                 // unsigned int samplesElapsed = n + context->audioFramesElapsed;
-                // rt_printf("---- samples elapsed = %d ----\n", samplesElapsed);
-                // rt_printf("---- sensor value = %d ----\n", sensorValue);
+                rt_printf("---- master ----\n");
+                rt_printf("---- sensor value = %f ----\n", sensorValue);
                 parallelComm.printBuffers(true);
 #endif                                                           /* VERBOSE */
                 parallelComm.sendData(context, n);               // send buffer
@@ -86,9 +80,10 @@ void render(BelaContext* context, void* userData) {
             parallelComm.readData(context, n);
             if (parallelComm.isReady() && parallelComm.hasChanged()) {
 #ifdef VERBOSE
+                rt_printf("---- slave ----\n");
                 unsigned int samplesElapsed = n + context->audioFramesElapsed;
                 rt_printf("---- samples elapsed = %d ----\n", samplesElapsed);
-                // rt_printf("---- sensor value = %f ----\n", sensorValue);
+                rt_printf("---- sensor value = %f ----\n", sensorValue);
 
                 parallelComm.printBuffers(true);
 #endif /* VERBOSE */
