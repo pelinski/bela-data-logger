@@ -31,3 +31,5 @@ ssh root@192.168.8.2
 ```
 ./bela_parallel_comm
 ```
+
+**the receiver needs to always be started before the transmitter**
