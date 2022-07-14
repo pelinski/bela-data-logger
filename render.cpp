@@ -22,6 +22,8 @@ unsigned int gCommBlockSpan = 689; // ~ 0.25 sec @44.1k (16 block size)
 bool setup(BelaContext *context, void *userData) {
 #if BELA_MASTER == 1
 	bool gBelaIsMaster = true;
+#else 
+	bool gBelaIsMaster = false;
 #endif
 	// If Bela is master...
 	if (gBelaIsMaster) {
@@ -52,8 +54,7 @@ void render(BelaContext *context, void *userData) {
 	for (unsigned int n = 0; n < context->audioFrames; n++) {
 		// If Bela is master..
 		if (gBelaIsMaster) {
-			// If first frame (beginning of block) and specific number of blocks have
-			// elapsed...
+			// If first frame (beginning of block) and specific number of blocks have elapsed...
 			if (n == 0 && ++gCommBlockCount > gCommBlockSpan) {
 				gCommBlockCount = 0;			       // reset block count
 				parallelComm.prepareDataToSend(0, gCommCount); // write count to buffer
@@ -68,7 +69,8 @@ void render(BelaContext *context, void *userData) {
 			parallelComm.readData(context, n);
 			if (parallelComm.isReady() && parallelComm.hasChanged()) {
 #ifdef VERBOSE
-				rt_printf("---- n = %d ----\n", n);
+				unsigned int samplesElapsed =  n + context->audioFramesElapsed;
+				rt_printf("---- samples elapsed = %d ----\n",  samplesElapsed);
 				parallelComm.printBuffers(true);
 #endif /* VERBOSE */
 				if (parallelComm.getBufferVal() >= -1)
