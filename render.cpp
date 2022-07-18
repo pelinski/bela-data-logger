@@ -7,6 +7,7 @@
 #ifndef BELA_MASTER
 #define BELA_MASTER 0
 #endif
+// TODO add an ID
 
 bool gBelaIsMaster = (bool)BELA_MASTER;
 
@@ -24,8 +25,13 @@ unsigned int gCommBlockSpan = 689; // ~ 0.25 sec @44.1k (16 block size)
 WriteFile dataLog;
 WriteFile syncLog;
 
+int gAudioFramesPerAnalogFrame = 0;
+
 /*** SETUP ***/
 bool setup(BelaContext* context, void* userData) {
+
+    if (context->analogFrames)
+        gAudioFramesPerAnalogFrame = context->audioFrames / context->analogFrames;
 
     /** Setup data logger**/
 
@@ -33,14 +39,23 @@ bool setup(BelaContext* context, void* userData) {
         fprintf(stderr, "DataLogger requires interleaved buffers\n");
         return false;
     }
-    dataLog.setup("data.log");  // set the file name to write to
+    if (gBelaIsMaster) {
+        dataLog.setup("data-tx.log".format); // set the file name to write to
+    } else {
+        dataLog.setup("data-rx.log".format); // set the file name to write to
+    }
     dataLog.setEchoInterval(0); // only print to the console every 10000 calls to log
     dataLog.setFileType(kBinary);
     dataLog.setHeader("");
     dataLog.setFooter("");
     // dataLog.setFormat("%.0f %.4f %.4f %.4f %.4f\n"); // Output format. Use only %f (with modifiers). When in binary mode, this is used only for echoing the console.
 
-    syncLog.setup("sync.log");
+    if (gBelaIsMaster) {
+        syncLog.setup("sync-tx.log");
+
+    } else {
+        syncLog.setup("sync-rx.log");
+    }
     syncLog.setEchoInterval(0);
     syncLog.setFileType(kBinary); // kText is not working properly in rx -- it misses the second logged value
     syncLog.setHeader("");
@@ -67,7 +82,7 @@ void render(BelaContext* context, void* userData) {
     for (unsigned int n = 0; n < context->analogFrames; n++) { // ! analogFrames here instead of audioFrames
 
         // Timestamp
-        unsigned int framesElapsed = n + context->audioFramesElapsed;
+        unsigned int framesElapsed = n + context->audioFramesElapsed / gAudioFramesPerAnalogFrame; // convert audio to analog frames elapsed
 
         //**Log timestamp and sensor values into dataLog**//
         dataLog.log(framesElapsed);                                      // timestamp
