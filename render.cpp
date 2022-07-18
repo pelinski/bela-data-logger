@@ -2,6 +2,7 @@
 #include <libraries/WriteFile/WriteFile.h>
 #include <vector>
 #include "BelaParallelComm/BelaParallelComm.h"
+// #include "WriteFile/WriteFile.h"
 
 #ifndef BELA_MASTER
 #define BELA_MASTER 0
@@ -32,26 +33,25 @@ bool setup(BelaContext* context, void* userData) {
         fprintf(stderr, "DataLogger requires interleaved buffers\n");
         return false;
     }
-
-    dataLog.setup("data.log");      // set the file name to write to
-    dataLog.setEchoInterval(10000); // only print to the console every 10000 calls to log
-    dataLog.setFileType(kText);
+    dataLog.setup("data.log");  // set the file name to write to
+    dataLog.setEchoInterval(0); // only print to the console every 10000 calls to log
+    dataLog.setFileType(kBinary);
     dataLog.setHeader("");
     dataLog.setFooter("");
-    dataLog.setFormat("%.0f, %.4f, %.4f, %.4f, %.4f\n"); // Output format. Use only %f (with modifiers). When in binary mode, this is used only for echoing the console.
+    // dataLog.setFormat("%.0f %.4f %.4f %.4f %.4f\n"); // Output format. Use only %f (with modifiers). When in binary mode, this is used only for echoing the console.
 
     syncLog.setup("sync.log");
     syncLog.setEchoInterval(0);
-    syncLog.setFileType(kText);
+    syncLog.setFileType(kBinary); // kText is not working properly in rx -- it misses the second logged value
     syncLog.setHeader("");
     syncLog.setFooter("");
-    syncLog.setFormat("%.0f, %.0f\n");
+    // syncLog.setFormat("%.0f %.0f\n");
 
     /**Setup parallel communication**/
 
     parallelComm.setup(gCommPins.data(), gCommPins.size(), kHeaderSizeComm, kNumBlocksComm);
     parallelComm.printDetails();
-    parallelComm.printBuffers(true);
+    // parallelComm.printBuffers(true);
 
     if (gBelaIsMaster) {
         parallelComm.prepareTx(context, 0);
@@ -87,7 +87,7 @@ void render(BelaContext* context, void* userData) {
                 syncLog.log(framesElapsed);
                 syncLog.log(gCommCount);
 
-                rt_printf("%d, %d\n", framesElapsed, gCommCount);
+                rt_printf("master -- %d, %d\n", framesElapsed, gCommCount);
 
                 if (++gCommCount > parallelComm.getMaxDataVal()) // increment count and check if it has changed
                     gCommCount = 0;
@@ -102,7 +102,7 @@ void render(BelaContext* context, void* userData) {
                 syncLog.log(framesElapsed);
                 syncLog.log(gCommCount);
 
-                rt_printf("%d, %d\n", framesElapsed, gCommCount);
+                rt_printf("rx -- %d, %d\n", framesElapsed, gCommCount);
             }
         }
     }
