@@ -1,17 +1,25 @@
 
 #include <libraries/WriteFile/WriteFile.h>
+#include <string>
 #include <vector>
 #include "BelaParallelComm/BelaParallelComm.h"
-// #include "WriteFile/WriteFile.h"
 
 #ifndef BELA_MASTER
 #define BELA_MASTER 0
 #endif
-// TODO add an ID
+
+#ifndef BELA_ID
+#if BELA_MASTER
+#define BELA_ID 0
+#else
+#define BELA_ID 1
+#endif
+#endif
 
 bool gBelaIsMaster = (bool)BELA_MASTER;
+std::string gBelaId;
 
-std::vector<unsigned int> gCommPins{ 0, 1, 2, 3 };
+std::vector<unsigned int> gCommPins{ 0, 1, 2, 3 }; // digital pins connected across the Belas
 
 BelaParallelComm parallelComm;
 
@@ -39,23 +47,21 @@ bool setup(BelaContext* context, void* userData) {
         fprintf(stderr, "DataLogger requires interleaved buffers\n");
         return false;
     }
+
     if (gBelaIsMaster) {
-        dataLog.setup("data-tx.log".format); // set the file name to write to
+        gBelaId = "TX" + std::to_string((unsigned int)BELA_ID);
     } else {
-        dataLog.setup("data-rx.log".format); // set the file name to write to
+        gBelaId = "RX" + std::to_string((unsigned int)BELA_ID);
     }
-    dataLog.setEchoInterval(0); // only print to the console every 10000 calls to log
+
+    dataLog.setup((gBelaId + "-data.log").c_str()); // set the file name to write to
+    dataLog.setEchoInterval(0);                     // only print to the console every 10000 calls to log
     dataLog.setFileType(kBinary);
     dataLog.setHeader("");
     dataLog.setFooter("");
     // dataLog.setFormat("%.0f %.4f %.4f %.4f %.4f\n"); // Output format. Use only %f (with modifiers). When in binary mode, this is used only for echoing the console.
 
-    if (gBelaIsMaster) {
-        syncLog.setup("sync-tx.log");
-
-    } else {
-        syncLog.setup("sync-rx.log");
-    }
+    syncLog.setup((gBelaId + "-sync.log").c_str());
     syncLog.setEchoInterval(0);
     syncLog.setFileType(kBinary); // kText is not working properly in rx -- it misses the second logged value
     syncLog.setHeader("");
