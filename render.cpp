@@ -1,4 +1,4 @@
-
+// Based on @adanlbenito example for the BelaParallelComm library
 #include <libraries/WriteFile/WriteFile.h>
 #include <string>
 #include <vector>
@@ -19,7 +19,7 @@
 bool gBelaIsMaster = (bool)BELA_MASTER;
 std::string gBelaId;
 
-std::vector<unsigned int> gCommPins{ 0, 1, 2, 3 }; // digital pins connected across the Belas
+std::vector<unsigned int> gCommPins{ 0, 1 }; // Digital pins to be connected between TX and RXs
 
 BelaParallelComm parallelComm;
 
@@ -30,21 +30,20 @@ unsigned int gCommBlockCount = 0;
 unsigned int gCommCount = 0;
 unsigned int gCommBlockSpan = 689; // ~ 0.25 sec @44.1k (16 block size)
 
-WriteFile dataLog;
+WriteFile sensorLog;
 WriteFile syncLog;
 
-int gAudioFramesPerAnalogFrame = 0;
+int gAudioFramesPerAnalogFrame;
 
-/*** SETUP ***/
 bool setup(BelaContext* context, void* userData) {
 
     if (context->analogFrames)
         gAudioFramesPerAnalogFrame = context->audioFrames / context->analogFrames;
 
-    /** Setup data logger**/
+    // Setup data logger
 
     if ((!context->flags) & BELA_FLAG_INTERLEAVED) {
-        fprintf(stderr, "DataLogger requires interleaved buffers\n");
+        fprintf(stderr, "sensorLogger requires interleaved buffers\n");
         return false;
     }
 
@@ -54,21 +53,19 @@ bool setup(BelaContext* context, void* userData) {
         gBelaId = "RX" + std::to_string((unsigned int)BELA_ID);
     }
 
-    dataLog.setup((gBelaId + "-data.log").c_str()); // set the file name to write to
-    dataLog.setEchoInterval(0);                     // only print to the console every 10000 calls to log
-    dataLog.setFileType(kBinary);
-    dataLog.setHeader("");
-    dataLog.setFooter("");
-    // dataLog.setFormat("%.0f %.4f %.4f %.4f %.4f\n"); // Output format. Use only %f (with modifiers). When in binary mode, this is used only for echoing the console.
+    sensorLog.setup((gBelaId + "-data.log").c_str()); // set the file name to write to
+    sensorLog.setEchoInterval(0);                     // only print to the console every 10000 calls to log
+    sensorLog.setFileType(kBinary);
+    sensorLog.setHeader("");
+    sensorLog.setFooter("");
 
     syncLog.setup((gBelaId + "-sync.log").c_str());
     syncLog.setEchoInterval(0);
     syncLog.setFileType(kBinary); // kText is not working properly in rx -- it misses the second logged value
     syncLog.setHeader("");
     syncLog.setFooter("");
-    // syncLog.setFormat("%.0f %.0f\n");
 
-    /**Setup parallel communication**/
+    // Setup parallel communication
 
     parallelComm.setup(gCommPins.data(), gCommPins.size(), kHeaderSizeComm, kNumBlocksComm);
     parallelComm.printDetails();
@@ -83,22 +80,20 @@ bool setup(BelaContext* context, void* userData) {
     return true;
 }
 
-/*** RENDER ***/
 void render(BelaContext* context, void* userData) {
     for (unsigned int n = 0; n < context->analogFrames; n++) { // ! analogFrames here instead of audioFrames
 
         // Timestamp
         unsigned int framesElapsed = n + context->audioFramesElapsed / gAudioFramesPerAnalogFrame; // convert audio to analog frames elapsed
 
-        //**Log timestamp and sensor values into dataLog**//
-        dataLog.log(framesElapsed);                                      // timestamp
-        dataLog.log(&(context->analogIn[n * context->analogFrames]), 4); // sensor values
+        //Log timestamp and sensor values into sensorLog
+        sensorLog.log(framesElapsed);                                      // timestamp
+        sensorLog.log(&(context->analogIn[n * context->analogFrames]), 4); // sensor values
 
-        //**Parallel communication**//
-        // If Bela is master..
+        //Parallel communication
         if (gBelaIsMaster) {
             // If first frame (beginning of block) and specific number of blocks have elapsed...
-            if (n == 0 && ++gCommBlockCount > gCommBlockSpan) {
+            if (CommBlockCount > gCommBlockSpan) {
                 gCommBlockCount = 0;                           // reset block count
                 parallelComm.prepareDataToSend(0, gCommCount); // write count to buffer
                 parallelComm.sendData(context, n);             // send buffer
@@ -113,7 +108,7 @@ void render(BelaContext* context, void* userData) {
                 if (++gCommCount > parallelComm.getMaxDataVal()) // increment count and check if it has changed
                     gCommCount = 0;
             }
-        } else { // If Bela is receiver...
+        } else {
             parallelComm.readData(context, n);
             if (parallelComm.isReady() && parallelComm.hasChanged() && (parallelComm.getBufferVal() >= -1)) {
                 gCommCount = parallelComm.getBufferVal();
