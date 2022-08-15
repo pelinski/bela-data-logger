@@ -1,3 +1,7 @@
-build/
+# build
 bela_parallel_comm
+build/
+
+# dev
 .vscode/
+.clang-format
