@@ -4,7 +4,7 @@ This code uses [@adanlbenito](https://github.com/adanlbenito)'s BelaParallelComm
 
 ## Instructions
 
-- Connect the Bela master digital IO pins 0 and 1 to the Bela receivers 0 and 1 pins.
+- Connect the Bela master digital IO pins 0 and 1 to the Bela receivers 0 and 1 pins. (You can use a different pair of digital pins, for example 10 and 11, by adding the cpp flag "-DDIGITAL_PINS={10,11}").
 - If you are using the same host machine to ssh into multiple Belas, you will need to change their default IP addresses. Instructions to do so are in the [knowledge base](https://learn.bela.io/using-bela/technical-explainers/ip-addresses/).
 - If you have cloned this repo in your host machine in some path, you can copy it to the Belas by using (from the host machine):
 
@@ -27,7 +27,7 @@ This code uses [@adanlbenito](https://github.com/adanlbenito)'s BelaParallelComm
 - You can now compile the code for the receiver Belas. Ssh into the receiver Bela by doing `ssh root@[bela.receiverN.ip]` and then run the following command (substitute N for the Bela receiver ID (0,1,2,..), each Bela receiver should have its unique ID).
 
   ```
-  make -C /root/Bela PROJECT=bela-data-logger CPPFLAGS="-DBELA_MASTER=0" CPPFLAGS="-DBELA_ID=N"
+  make -C /root/Bela PROJECT=bela-data-logger CPPFLAGS="-DBELA_MASTER=0 -DBELA_ID=N"
   ```
 
 - Now you can run the script in every Bela. It is very important that the **receiver Belas start running before the transmitter Bela**. This assures that the first clock signal received at RXN is also the first clock signal sent by TX.

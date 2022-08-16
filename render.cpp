@@ -16,10 +16,15 @@
 #endif
 #endif
 
+#ifndef DIGITAL_PINS
+#define DIGITAL_PINS \
+    { 0, 1 }
+#endif
+
 bool gBelaIsMaster = (bool)BELA_MASTER;
 std::string gBelaId;
 
-std::vector<unsigned int> gCommPins{ 0, 1 }; // Digital pins to be connected between TX and RXs
+std::vector<unsigned int> gCommPins = DIGITAL_PINS; // Digital pins to be connected between TX and RXs
 
 BelaParallelComm parallelComm;
 
@@ -93,7 +98,7 @@ void render(BelaContext* context, void* userData) {
         //Parallel communication
         if (gBelaIsMaster) {
             // If first frame (beginning of block) and specific number of blocks have elapsed...
-            if (CommBlockCount > gCommBlockSpan) {
+            if (gCommBlockCount > gCommBlockSpan) {
                 gCommBlockCount = 0;                           // reset block count
                 parallelComm.prepareDataToSend(0, gCommCount); // write count to buffer
                 parallelComm.sendData(context, n);             // send buffer
