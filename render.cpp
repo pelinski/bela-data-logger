@@ -4,6 +4,7 @@
 #include <vector>
 #include "BelaParallelComm/BelaParallelComm.h"
 
+// Cpp flags default values
 #ifndef BELA_MASTER
 #define BELA_MASTER 0
 #endif
@@ -21,10 +22,16 @@
     { 0, 1 }
 #endif
 
+#ifndef NUM_ANALOG_PINS
+#define NUM_ANALOG_PINS 5
+#endif
+
 bool gBelaIsMaster = (bool)BELA_MASTER;
 std::string gBelaId;
 
 std::vector<unsigned int> gCommPins = DIGITAL_PINS; // Digital pins to be connected between TX and RXs
+
+int gNumAnalogPins = (int)NUM_ANALOG_PINS; // Number of analog pins used (number of sensors connected to the Bela, assumes they are connected in ascending order, e.g., if gNumAnalogPins is 5, then pins 0, 1, 2, 3, 4 are used)
 
 BelaParallelComm parallelComm;
 
@@ -48,7 +55,7 @@ bool setup(BelaContext* context, void* userData) {
     // Setup data logger
 
     if ((!context->flags) & BELA_FLAG_INTERLEAVED) {
-        fprintf(stderr, "sensorLogger requires interleaved buffers\n");
+        fprintf(stderr, "data-logger requires interleaved buffers\n");
         return false;
     }
 
@@ -92,8 +99,8 @@ void render(BelaContext* context, void* userData) {
         unsigned int framesElapsed = n + context->audioFramesElapsed / gAudioFramesPerAnalogFrame; // convert audio to analog frames elapsed
 
         //Log timestamp and sensor values into sensorLog
-        sensorLog.log(framesElapsed);                                      // timestamp
-        sensorLog.log(&(context->analogIn[n * context->analogFrames]), 4); // sensor values
+        sensorLog.log(framesElapsed);                                                   // timestamp
+        sensorLog.log(&(context->analogIn[n * context->analogFrames]), gNumAnalogPins); // sensor values
 
         //Parallel communication
         if (gBelaIsMaster) {

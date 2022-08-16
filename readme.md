@@ -18,16 +18,16 @@ This code uses [@adanlbenito](https://github.com/adanlbenito)'s BelaParallelComm
   for REMOTE in "root@[bela.master.ip]:Bela/projects/" "root@[bela.receiver1.ip]:Bela/projects/" "root@[bela.receiver2.ip]:Bela/projects/"; do scp -r path/to/where/you/cloned/the/repo/ $REMOTE; done
   ```
 
-- Now you can compile the code for the Bela master. Ssh into the Bela master by doing `ssh root@[bela.master.ip]` and then run the following command:
+- Now you can compile the code for the Bela master. Ssh into the Bela master by doing `ssh root@[bela.master.ip]` and then run the following command (substitute M for the number of analog pins used)
 
   ```
-  make -C /root/Bela PROJECT=bela-data-logger CPPFLAGS="-DBELA_MASTER=1"
+  make -C /root/Bela PROJECT=bela-data-logger CPPFLAGS="-DBELA_MASTER=1 -DNUM_ANALOG_PINS=M"
   ```
 
 - You can now compile the code for the receiver Belas. Ssh into the receiver Bela by doing `ssh root@[bela.receiverN.ip]` and then run the following command (substitute N for the Bela receiver ID (0,1,2,..), each Bela receiver should have its unique ID).
 
   ```
-  make -C /root/Bela PROJECT=bela-data-logger CPPFLAGS="-DBELA_MASTER=0 -DBELA_ID=N"
+  make -C /root/Bela PROJECT=bela-data-logger CPPFLAGS="-DBELA_MASTER=0 -DBELA_ID=N -DNUM_ANALOG_PINS=M"
   ```
 
 - Now you can run the script in every Bela. It is very important that the **receiver Belas start running before the transmitter Bela**. This assures that the first clock signal received at RXN is also the first clock signal sent by TX.
