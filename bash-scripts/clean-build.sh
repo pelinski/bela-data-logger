@@ -1,0 +1,1 @@
+for REMOTE in "bela.A" "bela.B" "bela.C"; do echo $REMOTE && ssh $REMOTE "rm -r /root/Bela/projects/bela-data-logger/build /root/Bela/projects/bela-data-logger/bela-data-logger " ; done

@@ -4,6 +4,7 @@
 #include <vector>
 #include "BelaParallelComm/BelaParallelComm.h"
 
+// Cpp flags default values
 #ifndef BELA_MASTER
 #define BELA_MASTER 0
 #endif
@@ -16,10 +17,23 @@
 #endif
 #endif
 
+#ifndef DIGITAL_PINS
+#define DIGITAL_PINS \
+    { 0, 1 }
+#endif
+
+#ifndef NUM_ANALOG_PINS
+#define NUM_ANALOG_PINS 5
+#endif
+
 bool gBelaIsMaster = (bool)BELA_MASTER;
 std::string gBelaId;
 
-std::vector<unsigned int> gCommPins{ 0, 1 }; // Digital pins to be connected between TX and RXs
+unsigned int _gCommPins[2] = DIGITAL_PINS;
+  std::vector<unsigned int>
+    gCommPins; // Digital pins to be connected between TX and RXs
+
+int gNumAnalogPins = (int)NUM_ANALOG_PINS; // Number of analog pins used (number of sensors connected to the Bela, assumes they are connected in ascending order, e.g., if gNumAnalogPins is 5, then pins 0, 1, 2, 3, 4 are used)
 
 BelaParallelComm parallelComm;
 
@@ -37,13 +51,15 @@ int gAudioFramesPerAnalogFrame;
 
 bool setup(BelaContext* context, void* userData) {
 
+    gCommPins = { _gCommPins[0], _gCommPins[1] }; // cast into std::vector<unsigned int>
+
     if (context->analogFrames)
         gAudioFramesPerAnalogFrame = context->audioFrames / context->analogFrames;
 
     // Setup data logger
 
     if ((!context->flags) & BELA_FLAG_INTERLEAVED) {
-        fprintf(stderr, "sensorLogger requires interleaved buffers\n");
+        fprintf(stderr, "data-logger requires interleaved buffers\n");
         return false;
     }
 
@@ -61,7 +77,7 @@ bool setup(BelaContext* context, void* userData) {
 
     syncLog.setup((gBelaId + "-sync.log").c_str());
     syncLog.setEchoInterval(0);
-    syncLog.setFileType(kBinary); // kText is not working properly in rx -- it misses the second logged value
+    syncLog.setFileType(kBinary);
     syncLog.setHeader("");
     syncLog.setFooter("");
 
@@ -87,13 +103,13 @@ void render(BelaContext* context, void* userData) {
         unsigned int framesElapsed = n + context->audioFramesElapsed / gAudioFramesPerAnalogFrame; // convert audio to analog frames elapsed
 
         //Log timestamp and sensor values into sensorLog
-        sensorLog.log(framesElapsed);                                      // timestamp
-        sensorLog.log(&(context->analogIn[n * context->analogFrames]), 4); // sensor values
+        sensorLog.log(framesElapsed);                                                   // timestamp
+        sensorLog.log(&(context->analogIn[n * context->analogFrames]), gNumAnalogPins); // sensor values
 
         //Parallel communication
         if (gBelaIsMaster) {
             // If first frame (beginning of block) and specific number of blocks have elapsed...
-            if (CommBlockCount > gCommBlockSpan) {
+            if (n == 0 && ++gCommBlockCount > gCommBlockSpan) {
                 gCommBlockCount = 0;                           // reset block count
                 parallelComm.prepareDataToSend(0, gCommCount); // write count to buffer
                 parallelComm.sendData(context, n);             // send buffer
