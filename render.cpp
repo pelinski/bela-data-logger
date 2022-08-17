@@ -29,7 +29,9 @@
 bool gBelaIsMaster = (bool)BELA_MASTER;
 std::string gBelaId;
 
-std::vector<unsigned int> gCommPins = DIGITAL_PINS; // Digital pins to be connected between TX and RXs
+unsigned int _gCommPins[2] = DIGITAL_PINS;
+  std::vector<unsigned int>
+    gCommPins; // Digital pins to be connected between TX and RXs
 
 int gNumAnalogPins = (int)NUM_ANALOG_PINS; // Number of analog pins used (number of sensors connected to the Bela, assumes they are connected in ascending order, e.g., if gNumAnalogPins is 5, then pins 0, 1, 2, 3, 4 are used)
 
@@ -48,6 +50,8 @@ WriteFile syncLog;
 int gAudioFramesPerAnalogFrame;
 
 bool setup(BelaContext* context, void* userData) {
+
+    gCommPins = { _gCommPins[0], _gCommPins[1] }; // cast into std::vector<unsigned int>
 
     if (context->analogFrames)
         gAudioFramesPerAnalogFrame = context->audioFrames / context->analogFrames;
@@ -73,7 +77,7 @@ bool setup(BelaContext* context, void* userData) {
 
     syncLog.setup((gBelaId + "-sync.log").c_str());
     syncLog.setEchoInterval(0);
-    syncLog.setFileType(kBinary); // kText is not working properly in rx -- it misses the second logged value
+    syncLog.setFileType(kBinary);
     syncLog.setHeader("");
     syncLog.setFooter("");
 
@@ -105,7 +109,7 @@ void render(BelaContext* context, void* userData) {
         //Parallel communication
         if (gBelaIsMaster) {
             // If first frame (beginning of block) and specific number of blocks have elapsed...
-            if (gCommBlockCount > gCommBlockSpan) {
+            if (n == 0 && ++gCommBlockCount > gCommBlockSpan) {
                 gCommBlockCount = 0;                           // reset block count
                 parallelComm.prepareDataToSend(0, gCommCount); // write count to buffer
                 parallelComm.sendData(context, n);             // send buffer
