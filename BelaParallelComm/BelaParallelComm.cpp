@@ -1,11 +1,13 @@
 #include <BelaParallelComm/BelaParallelComm.h>
 
-BelaParallelComm::BelaParallelComm(unsigned int* digitalPins, unsigned int nDigitals, unsigned int headerSize, unsigned int nBlocks, bool lsb) {
-    setup(digitalPins, nDigitals, headerSize, nBlocks);
+BelaParallelComm::BelaParallelComm(std::string belaId, unsigned int* digitalPins, unsigned int nDigitals, unsigned int headerSize, unsigned int nBlocks, bool lsb) {
+    setup(belaId, digitalPins, nDigitals, headerSize, nBlocks);
 }
 
-int BelaParallelComm::setup(unsigned int* digitalPins, unsigned int nDigitals, unsigned int headerSize, unsigned int nBlocks, bool lsb) {
-    _lsb = lsb;
+int BelaParallelComm::setup(std::string belaId, unsigned int* digitalPins, unsigned int nDigitals, unsigned int headerSize, unsigned int nBlocks, bool lsb) {
+    _belaId = belaId;
+    _lsb
+      = lsb;
     _nDigitals = nDigitals;
     _digitalPins.resize(nDigitals);
     for (unsigned int i = 0; i < nDigitals; i++)
@@ -155,12 +157,9 @@ void BelaParallelComm::readData(BelaContext* context, unsigned int n) {
 }
 
 void BelaParallelComm::printBuffers(bool rt) {
-    if (rt) {
-        if (_mode == TX) {
-            rt_printf("--TX--\n");
-        } else if (_mode == RX) {
-            rt_printf("--RX--\n");
-        }
+    if (rt) { // real-time safe prints
+        rt_printf("-- %s --\n", _belaId.c_str());
+
         rt_printf("Data Header [%d]:", getHeaderVal());
         for (unsigned int i = 0; i < _dataHeader.size(); i++)
             rt_printf(" %d", _dataHeader[i]);
@@ -170,13 +169,9 @@ void BelaParallelComm::printBuffers(bool rt) {
         for (unsigned int i = 0; i < _dataBuffer.size(); i++)
             rt_printf(" %d", _dataBuffer[i]);
         rt_printf("\n");
-        rt_printf("--\n");
     } else {
-        if (_mode == TX) {
-            printf("--TX--\n");
-        } else if (_mode == RX) {
-            printf("--RX--\n");
-        }
+        printf("-- %s --\n", _belaId.c_str());
+
         printf("Data Header [%d]:", getHeaderVal());
         for (unsigned int i = 0; i < _dataHeader.size(); i++)
             printf(" %d", _dataHeader[i]);
@@ -186,7 +181,6 @@ void BelaParallelComm::printBuffers(bool rt) {
         for (unsigned int i = 0; i < _dataBuffer.size(); i++)
             printf(" %d", _dataBuffer[i]);
         printf("\n");
-        printf("--\n");
     }
 }
 

@@ -30,8 +30,8 @@ bool gBelaIsMaster = (bool)BELA_MASTER;
 std::string gBelaId;
 
 unsigned int _gCommPins[2] = DIGITAL_PINS;
-  std::vector<unsigned int>
-    gCommPins; // Digital pins to be connected between TX and RXs
+std::vector<unsigned int>
+  gCommPins; // Digital pins to be connected between TX and RXs
 
 int gNumAnalogPins = (int)NUM_ANALOG_PINS; // Number of analog pins used (number of sensors connected to the Bela, assumes they are connected in ascending order, e.g., if gNumAnalogPins is 5, then pins 0, 1, 2, 3, 4 are used)
 
@@ -83,7 +83,7 @@ bool setup(BelaContext* context, void* userData) {
 
     // Setup parallel communication
 
-    parallelComm.setup(gCommPins.data(), gCommPins.size(), kHeaderSizeComm, kNumBlocksComm);
+    parallelComm.setup(gBelaId, gCommPins.data(), gCommPins.size(), kHeaderSizeComm, kNumBlocksComm);
     parallelComm.printDetails();
     // parallelComm.printBuffers(true);
 
@@ -119,7 +119,7 @@ void render(BelaContext* context, void* userData) {
                 syncLog.log(framesElapsed);
                 syncLog.log(gCommCount);
 
-                rt_printf("master -- %d, %d\n", framesElapsed, gCommCount);
+                rt_printf("%d, %d --\n", framesElapsed, gCommCount);
 
                 if (++gCommCount > parallelComm.getMaxDataVal()) // increment count and check if it has changed
                     gCommCount = 0;
@@ -134,7 +134,7 @@ void render(BelaContext* context, void* userData) {
                 syncLog.log(framesElapsed);
                 syncLog.log(gCommCount);
 
-                rt_printf("rx -- %d, %d\n", framesElapsed, gCommCount);
+                rt_printf("%d, %d\n\n", framesElapsed, gCommCount);
             }
         }
     }

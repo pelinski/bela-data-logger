@@ -1,6 +1,7 @@
 #pragma once
 #include <Bela.h>
 #include <math.h>
+#include <string>
 #include <vector>
 
 /* 
@@ -21,8 +22,8 @@ class BelaParallelComm {
     } Mode;
 
     BelaParallelComm(){};
-    BelaParallelComm(unsigned int* digitalPins, unsigned int nDigitals, unsigned int headerSize = 2, unsigned int nBlocks = 1, bool lsb = true);
-    int setup(unsigned int* digitalPins, unsigned int nDigitals, unsigned int headerSize = 2, unsigned int nBlocks = 1, bool lsb = true);
+    BelaParallelComm(std::string belaId, unsigned int* digitalPins, unsigned int nDigitals, unsigned int headerSize = 2, unsigned int nBlocks = 1, bool lsb = true);
+    int setup(std::string belaId, unsigned int* digitalPins, unsigned int nDigitals, unsigned int headerSize = 2, unsigned int nBlocks = 1, bool lsb = true);
     ~BelaParallelComm(){};
 
     void prepareTx(BelaContext* context, unsigned int n = 0);
@@ -52,6 +53,7 @@ class BelaParallelComm {
     unsigned int getMaxDataVal() { return pow(2.0, getNumDataBits()) - 1; };
 
   private:
+    std::string _belaId;
     std::vector<unsigned int> _digitalPins;
     std::vector<unsigned int> _dataBuffer;
     std::vector<unsigned int> _dataHeader;
