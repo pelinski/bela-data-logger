@@ -32,6 +32,8 @@ class BelaParallelComm {
     bool isReady() { return _ready; };
     bool hasChanged() { return _hasChanged; };
 
+    std::vector<std::vector<int>> generateGray(int n);
+
     int prepareDataToSend(unsigned int header, unsigned int data);
 
     void intToBitArray(int value, unsigned int* bitArray, int nBits, bool lsb = true);
@@ -57,6 +59,7 @@ class BelaParallelComm {
     std::vector<unsigned int> _digitalPins;
     std::vector<unsigned int> _dataBuffer;
     std::vector<unsigned int> _dataHeader;
+    std::vector<std::vector<int>> _grayTable;
     unsigned int _nDigitals;
     unsigned int _headerSize;
     unsigned int _nBlocks;

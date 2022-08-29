@@ -16,8 +16,9 @@ int BelaParallelComm::setup(std::string belaId, unsigned int* digitalPins, unsig
     _nBlocks = (nBlocks > 0) ? nBlocks : 1;
 
     _dataHeader.resize(headerSize);
-    _dataBuffer.resize(nDigitals * nBlocks - headerSize - nBlocks);
-
+    unsigned int nDataBits = nDigitals * nBlocks - headerSize - nBlocks;
+    _dataBuffer.resize(nDataBits);
+    _grayTable = generateGray(nDataBits);
     return 0;
 }
 
@@ -45,18 +46,23 @@ int BelaParallelComm::prepareDataToSend(unsigned int header, unsigned int data) 
 
 void BelaParallelComm::intToBitArray(int value, unsigned int* bitArray, int nBits, bool lsb) {
     for (unsigned int i = 0; i < nBits; i++) {
-        unsigned int idx = (lsb) ? nBits - i - 1 : i;
-        bitArray[idx] = (value >> i) & 1;
+        bitArray[i] = _grayTable[value][i];
     }
 }
 
 unsigned int BelaParallelComm::bitArrayToInt(unsigned int* bitArray, int nBits, bool lsb) {
-    int ret = 0;
-    for (unsigned int i = 0; i < nBits; i++) {
-        unsigned int idx = (lsb) ? nBits - i - 1 : i;
-        ret += (1 << i) * bitArray[idx];
+    // find value in table
+    unsigned int value;
+    for (unsigned int i = 0; i < _grayTable.size(); i++) {
+        for (unsigned int j = 0; j < nBits; j++) {
+            if (_grayTable[i][j] != bitArray[j]) {
+                break;
+            } else if (j == 2) { // if all numbers in bitArray are equal to _grayTable[i], match
+                value = i;
+            }
+        }
     }
-    return ret;
+    return value;
 }
 
 void BelaParallelComm::sendData(BelaContext* context, unsigned int n, bool persistent) {
@@ -193,4 +199,35 @@ void BelaParallelComm::printDetails() {
     printf("Number of blocks: %d\n", _nBlocks);
     printf("Number of data bits: %d\n", getNumDataBits());
     printf("Max val: %d\n", getMaxDataVal());
+}
+
+std::vector<std::vector<int>> BelaParallelComm::generateGray(int n) {
+    // Base case
+    if (n <= 0)
+        return { { 0 } };
+
+    if (n == 1) {
+        return { { 0 }, { 1 } };
+    }
+
+    //Recursive case
+    std::vector<std::vector<int>> recAns = generateGray(n - 1);
+    std::vector<std::vector<int>> mainAns;
+
+    // Append 0 to the first half
+    for (int i = 0; i < recAns.size(); i++) {
+        std::vector<int> s = recAns[i];
+        s.insert(s.begin(), 0);
+
+        mainAns.push_back(s);
+    }
+
+    // Append 1 to the second half
+    for (int i = recAns.size() - 1; i >= 0; i--) {
+        std::vector<int> s = recAns[i];
+        s.insert(s.begin(), 1);
+
+        mainAns.push_back(s);
+    }
+    return mainAns;
 }

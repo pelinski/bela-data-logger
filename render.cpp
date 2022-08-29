@@ -29,7 +29,7 @@
 bool gBelaIsMaster = (bool)BELA_MASTER;
 std::string gBelaId;
 
-unsigned int _gCommPins[2] = DIGITAL_PINS;
+unsigned int _gCommPins[] = DIGITAL_PINS;
 std::vector<unsigned int>
   gCommPins; // Digital pins to be connected between TX and RXs
 
@@ -51,10 +51,12 @@ int gAudioFramesPerAnalogFrame;
 
 bool setup(BelaContext* context, void* userData) {
 
-    gCommPins = { _gCommPins[0], _gCommPins[1] }; // cast into std::vector<unsigned int>
-
+    for (unsigned int i = 0; i < (*(&_gCommPins + 1) - _gCommPins); i++) {
+        gCommPins.push_back(_gCommPins[i]); // cast into std::vector<unsigned int>
+    }
     if (context->analogFrames)
-        gAudioFramesPerAnalogFrame = context->audioFrames / context->analogFrames;
+        gAudioFramesPerAnalogFrame
+          = context->audioFrames / context->analogFrames;
 
     // Setup data logger
 
