@@ -22,8 +22,8 @@ class BelaParallelComm {
     } Mode;
 
     BelaParallelComm(){};
-    BelaParallelComm(std::string belaId, unsigned int* digitalPins, unsigned int nDigitals, unsigned int headerSize = 2, unsigned int nBlocks = 1, bool lsb = true);
-    int setup(std::string belaId, unsigned int* digitalPins, unsigned int nDigitals, unsigned int headerSize = 2, unsigned int nBlocks = 1, bool lsb = true);
+    BelaParallelComm(std::string belaId, unsigned int* digitalPins, unsigned int nDigitals, bool lsb = true, bool grayCode = false);
+    int setup(std::string belaId, unsigned int* digitalPins, unsigned int nDigitals, bool lsb = true, bool grayCode = false);
     ~BelaParallelComm(){};
 
     void prepareTx(BelaContext* context, unsigned int n = 0);
@@ -32,13 +32,14 @@ class BelaParallelComm {
     bool isReady() { return _ready; };
     bool hasChanged() { return _hasChanged; };
 
-    std::vector<std::vector<int>> generateGray(int n);
+    int prepareDataToSend(unsigned int data);
 
-    int prepareDataToSend(unsigned int header, unsigned int data);
+    void intToBitArray(int value, unsigned int* bitArray, int nBits, bool lsb, bool grayCode);
 
-    void intToBitArray(int value, unsigned int* bitArray, int nBits, bool lsb = true);
+    unsigned int bitArrayToInt(unsigned int* bitArray, int nBits, bool lsb, bool grayCode);
 
-    unsigned int bitArrayToInt(unsigned int* bitArray, int nBits, bool lsb = true);
+    int grayToBinary(int value);
+    int binaryToGray(int value);
 
     void sendData(BelaContext* context, unsigned int n = 0, bool persistent = false);
 
@@ -48,25 +49,20 @@ class BelaParallelComm {
 
     void printDetails();
 
-    int getHeaderVal() { return (_ready) ? bitArrayToInt(_dataHeader.data(), _dataHeader.size(), _lsb) : -1; };
-    int getBufferVal() { return (_ready) ? bitArrayToInt(_dataBuffer.data(), _dataBuffer.size(), _lsb) : -1; };
+    int getBufferVal() { return (_ready) ? bitArrayToInt(_dataBuffer.data(), _dataBuffer.size(), _lsb, _grayCode) : -1; };
 
-    unsigned int getNumDataBits() { return _nDigitals * _nBlocks - _headerSize - _nBlocks; };
+    unsigned int getNumDataBits() { return _nDigitals; };
     unsigned int getMaxDataVal() { return pow(2.0, getNumDataBits()) - 1; };
 
   private:
     std::string _belaId;
+
     std::vector<unsigned int> _digitalPins;
     std::vector<unsigned int> _dataBuffer;
-    std::vector<unsigned int> _dataHeader;
-    std::vector<std::vector<int>> _grayTable;
     unsigned int _nDigitals;
-    unsigned int _headerSize;
-    unsigned int _nBlocks;
-    unsigned int _flagBit = 0;
-    int _blockCount = -1;
     bool _ready = false;
     bool _hasChanged = false;
     bool _lsb = true;
+    bool _grayCode = false;
     Mode _mode = UNKNOWN;
 };

@@ -37,9 +37,6 @@ int gNumAnalogPins = (int)NUM_ANALOG_PINS; // Number of analog pins used (number
 
 BelaParallelComm parallelComm;
 
-const unsigned int kNumBlocksComm = 1;  // This example works only for one block of data, needs revision for multiple blocks
-const unsigned int kHeaderSizeComm = 0; // No header, all data
-
 unsigned int gCommBlockCount = 0;
 unsigned int gCommCount = 0;
 unsigned int gCommBlockSpan = 689; // ~ 0.25 sec @44.1k (16 block size)
@@ -85,7 +82,7 @@ bool setup(BelaContext* context, void* userData) {
 
     // Setup parallel communication
 
-    parallelComm.setup(gBelaId, gCommPins.data(), gCommPins.size(), kHeaderSizeComm, kNumBlocksComm);
+    parallelComm.setup(gBelaId, gCommPins.data(), gCommPins.size(), true, true);
     parallelComm.printDetails();
     // parallelComm.printBuffers(true);
 
@@ -113,7 +110,7 @@ void render(BelaContext* context, void* userData) {
             // If first frame (beginning of block) and specific number of blocks have elapsed...
             if (n == 0 && ++gCommBlockCount > gCommBlockSpan) {
                 gCommBlockCount = 0;                           // reset block count
-                parallelComm.prepareDataToSend(0, gCommCount); // write count to buffer
+                parallelComm.prepareDataToSend(gCommCount); // write count to buffer
                 parallelComm.sendData(context, n);             // send buffer
                 parallelComm.printBuffers(true);
 
