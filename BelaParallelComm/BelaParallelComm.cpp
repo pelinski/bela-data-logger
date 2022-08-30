@@ -57,7 +57,7 @@ unsigned int BelaParallelComm::bitArrayToInt(unsigned int* bitArray, int nBits, 
         for (unsigned int j = 0; j < nBits; j++) {
             if (_grayTable[i][j] != bitArray[j]) {
                 break;
-            } else if (j == 2) { // if all numbers in bitArray are equal to _grayTable[i], match
+            } else if (j == nBits-1) { // if all numbers in bitArray are equal to _grayTable[i], match
                 value = i;
             }
         }
