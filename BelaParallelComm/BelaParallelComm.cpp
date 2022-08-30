@@ -38,6 +38,7 @@ void BelaParallelComm::prepareRx(BelaContext* context, unsigned int n) {
 int BelaParallelComm::prepareDataToSend(unsigned int header, unsigned int data) {
     if (!_ready)
         return -1;
+    // store data into bitArray
     intToBitArray(header, _dataHeader.data(), _dataHeader.size(), _lsb);
     intToBitArray(data, _dataBuffer.data(), _dataBuffer.size(), _lsb);
     _blockCount = 0;
@@ -57,7 +58,7 @@ unsigned int BelaParallelComm::bitArrayToInt(unsigned int* bitArray, int nBits, 
         for (unsigned int j = 0; j < nBits; j++) {
             if (_grayTable[i][j] != bitArray[j]) {
                 break;
-            } else if (j == nBits-1) { // if all numbers in bitArray are equal to _grayTable[i], match
+            } else if (j == nBits - 1) { // if all numbers in bitArray are equal to _grayTable[i], match
                 value = i;
             }
         }
@@ -80,6 +81,7 @@ void BelaParallelComm::sendData(BelaContext* context, unsigned int n, bool persi
                 digitalWrite(context, n, _digitalPins[lastIndex], 1);
             else
                 digitalWriteOnce(context, n, _digitalPins[lastIndex], 1);
+
             // Write header
             for (unsigned int i = 0; i < _headerSize; i++) {
                 if (persistent)
@@ -105,7 +107,7 @@ void BelaParallelComm::sendData(BelaContext* context, unsigned int n, bool persi
         }
         _blockCount++;
     } else // If no blocks left
-    {
+    {      
         // Set block count to -1
         _blockCount = -1;
         // Set ready flag, new data can be sent/received
