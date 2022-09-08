@@ -97,9 +97,9 @@ bool setup(BelaContext* context, void* userData) {
 void render(BelaContext* context, void* userData) {
     for (unsigned int nAudioFrames = 0; nAudioFrames < context->audioFrames; nAudioFrames++) {
         // Convert nAudioFrames (which we are looping over) to nAnalogFrames, used for reading the sensor values
-        unsigned int nAnalogFrames = ceil(nAudioFrames / gAudioFramesPerAnalogFrame);
+        unsigned int nAnalogFrames = nAudioFrames / gAudioFramesPerAnalogFrame;
         // Timestamp
-        unsigned int analogFramesElapsed = ceil((nAudioFrames + context->audioFramesElapsed) / gAudioFramesPerAnalogFrame);
+        unsigned int analogFramesElapsed = (nAudioFrames + context->audioFramesElapsed) / gAudioFramesPerAnalogFrame;
 
         // only log sensor data when it's read (at each analogFrame)
         if (nAudioFrames % gAudioFramesPerAnalogFrame == gAudioFramesPerAnalogFrame - 1) {
@@ -127,7 +127,7 @@ void render(BelaContext* context, void* userData) {
             }
         } else {
             parallelComm.readData(context, nAudioFrames); // digital data is written and read at
-            if (parallelComm.isReady() && parallelComm.hasChanged() && (parallelComm.getBufferVal() >= -1)) {
+            if (parallelComm.isReady() && parallelComm.hasChanged()) {
                 gCommCount = parallelComm.getBufferVal();
                 parallelComm.printBuffers(true);
 
