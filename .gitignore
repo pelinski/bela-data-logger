@@ -5,3 +5,6 @@ build/
 # dev
 .vscode/
 .clang-format
+
+# recorded dataset
+data/

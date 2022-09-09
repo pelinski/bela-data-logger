@@ -17,23 +17,13 @@
 #endif
 #endif
 
-#ifndef DIGITAL_PINS
-#define DIGITAL_PINS \
-    { 0, 1 }
-#endif
-
-#ifndef NUM_ANALOG_PINS
-#define NUM_ANALOG_PINS 5
-#endif
-
 bool gBelaIsMaster = (bool)BELA_MASTER;
 std::string gBelaId;
 
-unsigned int _gCommPins[] = DIGITAL_PINS;
 std::vector<unsigned int>
-  gCommPins; // Digital pins to be connected between TX and RXs. Only working for 1 pin at the moment
+  gCommPins = { 10 }; // Digital pins to be connected between TX and RXs
 
-unsigned int gNumAnalogPins = (unsigned int)NUM_ANALOG_PINS; // Number of analog pins used (number of sensors connected to the Bela, assumes they are connected in ascending order, e.g., if gNumAnalogPins is 5, then pins 0, 1, 2, 3, 4 are used)
+unsigned int gNumAnalogPins = 8; // Number of analog pins used (number of sensors connected to the Bela, assumes they are connected in ascending order, e.g., if gNumAnalogPins is 5, then pins 0, 1, 2, 3, 4 are used)
 
 BelaParallelComm parallelComm;
 
@@ -48,9 +38,6 @@ unsigned int gAudioFramesPerAnalogFrame;
 
 bool setup(BelaContext* context, void* userData) {
 
-    for (unsigned int i = 0; i < (*(&_gCommPins + 1) - _gCommPins); i++) {
-        gCommPins.push_back(_gCommPins[i]); // cast into std::vector<unsigned int>
-    }
     if (context->analogFrames)
         gAudioFramesPerAnalogFrame
           = context->audioFrames / context->analogFrames;
