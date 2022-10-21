@@ -12,4 +12,4 @@ Host bela.C
     User root
 ```
 
-The bash scripts in this folder use this aliases to do bulk operations on 3 Belas from the same host machine.
+The bash scripts in this folder use these aliases to do bulk operations on 3 Belas from the same host machine.
