@@ -13,20 +13,24 @@
 #define BELA_ID 0
 #endif
 
+#ifndef NUM_INPUTS
+#define NUM_INPUTS 2
+#endif
+
+// Config: Bela role, Id, and number of Analog pins to log
 bool gBelaIsMaster = (bool)BELA_MASTER;
 std::string gBelaId;
+unsigned int gNumAnalogPins = (unsigned int) NUM_INPUTS; // Number of analog pins used (number of sensors connected to the Bela, assumes they are connected in ascending order, e.g., if gNumAnalogPins is 5, then pins 0, 1, 2, 3, 4 are used)
 
+// BelaParallelComm config 
+BelaParallelComm parallelComm;
 std::vector<unsigned int>
   gCommPins = { 10 }; // Digital pins to be connected between TX and RXs
-
-unsigned int gNumAnalogPins = 8; // Number of analog pins used (number of sensors connected to the Bela, assumes they are connected in ascending order, e.g., if gNumAnalogPins is 5, then pins 0, 1, 2, 3, 4 are used)
-
-BelaParallelComm parallelComm;
-
 unsigned int gCommBlockCount = 0;
 unsigned int gCommCount = 1;       // starts at 1 because otherwise it does not detect the first bit
 unsigned int gCommBlockSpan = 689; // ~ 0.25 sec @44.1k (16 block size)
 
+// WriteFile config
 WriteFile sensorLog;
 WriteFile syncLog;
 
