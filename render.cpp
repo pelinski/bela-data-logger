@@ -10,11 +10,7 @@
 #endif
 
 #ifndef BELA_ID
-#if BELA_MASTER
 #define BELA_ID 0
-#else
-#define BELA_ID 1
-#endif
 #endif
 
 bool gBelaIsMaster = (bool)BELA_MASTER;

@@ -8,3 +8,5 @@ build/
 
 # recorded dataset
 data/
+
+.DS_Store
