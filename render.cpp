@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include "BelaParallelComm/BelaParallelComm.h"
+#include <libraries/Scope/Scope.h>
+
 
 // Cpp flags default values
 #ifndef BELA_MASTER
@@ -34,9 +36,15 @@ unsigned int gCommBlockSpan = 689; // ~ 0.25 sec @44.1k (16 block size)
 WriteFile sensorLog;
 WriteFile syncLog;
 
+// Bela Scope
+Scope gScope;
+
 unsigned int gAudioFramesPerAnalogFrame;
 
 bool setup(BelaContext* context, void* userData) {
+
+    rt_printf("BelaParallelComm: Bela %s, ID %d, %d analog pins, %d analog in channels, analog sample rate: %.1f\n",
+              gBelaIsMaster ? "main" : "sub", BELA_ID, gNumAnalogPins, context->analogInChannels, context->analogSampleRate);
 
     if (context->analogFrames)
         gAudioFramesPerAnalogFrame
@@ -78,6 +86,9 @@ bool setup(BelaContext* context, void* userData) {
         parallelComm.prepareRx(context, 0);
     }
 
+    // Setup Bela Scope
+    gScope.setup(gNumAnalogPins, context->audioSampleRate);
+
     return true;
 }
 
@@ -90,6 +101,10 @@ void render(BelaContext* context, void* userData) {
 
         // only log sensor data when it's read (at each analogFrame)
         if (nAudioFrames % gAudioFramesPerAnalogFrame == gAudioFramesPerAnalogFrame - 1) {
+
+            // Scope
+            gScope.log(&(context->analogIn[nAnalogFrames * context->analogFrames]));
+
             //Log timestamp and sensor values into sensorLog
             sensorLog.log(analogFramesElapsed);                                                         // timestamp
             sensorLog.log(&(context->analogIn[nAnalogFrames * context->analogFrames]), gNumAnalogPins); // sensor values
