@@ -1,4 +1,4 @@
-# 1 - Data recording (in Bela)
+# bela-data-logger
 
 This code allows recording datasets of sensor signals recorded simultaneously in multiple Bela boards.  A clock signal (a digital bit) is sent from a transmitter Bela (TX) to the receiver Belas (RXs). The sensor values and the frames at which the clock signal is received (in the case of the RXs) or sent (in the case of the TX) are saved in `.log` files. Those files are processed in the next step of the pipeline.
 
@@ -44,6 +44,5 @@ Note: If you are using the same host machine to ssh into multiple Belas, you wil
   ```
   for REMOTE in "root@[bela.main.ip]:Bela/projects/bela-data-logger" "root@[bela.receiver1.ip]:Bela/projects/bela-data-logger" "root@[bela.receiver2.ip]:Bela/projects/bela-data-logger"; do scp $REMOTE\*.log path/where/you/want/the/logs/in/your/host/machine; done
   ```
-
-In step 2 we will use the `DataSyncer` library to align all the sensor signals framewise and load them into a python numpy array.
+  8. You can now use the [DataSyncer](https://github.com/pelinski/bela-data-syncer) library to align all the sensor signals framewise and load them into a python numpy array.
 
