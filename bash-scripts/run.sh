@@ -1,1 +1,0 @@
-ssh $1 "./Bela/projects/bela-data-logger/bela-data-logger"

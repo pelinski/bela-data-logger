@@ -1,1 +1,0 @@
-for REMOTE in "bela.A" "bela.B" "bela.C"; do echo $REMOTE && ssh $REMOTE "make -C /root/Bela stop"; done

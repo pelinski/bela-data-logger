@@ -1,1 +1,0 @@
-for REMOTE in "bela.A" "bela.B" "bela.C"; do echo $REMOTE && scp -r $REMOTE:Bela/projects/bela-data-logger/*.log ../data ; done
