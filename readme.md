@@ -1,4 +1,4 @@
-# 1 - Data recording (in Bela)
+# 1 - Dataset recording (in Bela)
 
 This code allows recording datasets of sensor signals recorded simultaneously in multiple Bela boards.  A clock signal (a digital bit) is sent from a transmitter Bela (TX) to the receiver Belas (RXs). The sensor values and the frames at which the clock signal is received (in the case of the RXs) or sent (in the case of the TX) are saved in `.log` files. Those files are processed in the next step of the pipeline.
 
